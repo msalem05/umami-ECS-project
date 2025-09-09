@@ -27,9 +27,9 @@ resource "aws_eip" "eip" {
 
 resource "aws_nat_gateway" "nat" {
     allocation_id = aws_eip.eip.id
-    subnet_id = aws_subnet.private.id
+    subnet_id = aws_subnet.public[0].id
 
-    depends_on = [ aws_internet_gateway.example ]
+    depends_on = [ aws_internet_gateway.igw ]
 }
 
 resource "aws_nat_gateway_eip_association" "nat_eip" {
@@ -54,8 +54,9 @@ resource "aws_route" "public_route" {
 }
 
 resource "aws_route_table_association" "public_association" {
+    count = length(var.az)
     route_table_id = aws_route_table.public.id
-    subnet_id = aws_subnet.public.id
+    subnet_id = aws_subnet.public[count.index].id
 }
 
 resource "aws_route_table" "private" {
@@ -70,6 +71,7 @@ resource "aws_route" "private_route" {
 }
 
 resource "aws_route_table_association" "private_association" {
+    count = length(var.az)
     route_table_id = aws_route_table.private.id
-    subnet_id = aws_subnet.private.id
+    subnet_id = aws_subnet.private[count.index].id
 }
