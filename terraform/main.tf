@@ -15,3 +15,9 @@ module "vpc" {
 module "ecr" {
     source = "./modules/ecr"
 }
+
+module "iam" {
+    source = "./modules/iam"
+    ecr_repository_arn = module.ecr.repository_arn
+}
+

@@ -1,7 +1,11 @@
-output "repositry_url" {
+output "repository_url" {
     value = aws_ecr_repository.repo.repository_url
 }
 
-output "repositry_name" {
+output "repository_name" {
     value = aws_ecr_repository.repo.name
+}
+
+output "repository_arn" {
+    value = aws_ecr_repository.repo.arn
 }

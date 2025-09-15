@@ -1,4 +1,4 @@
-data "aws_iam_policy_document" "ecs_task_execution_role_assume" {
+data "aws_iam_policy_document" "assume_role_policy" {
     statement {
         actions = ["sts:AssumeRole"]
 
@@ -12,7 +12,7 @@ data "aws_iam_policy_document" "ecs_task_execution_role_assume" {
 
 resource "aws_iam_role" "ecs_task_execution_role" {
     name = var.ecs_task_execution_role_name
-    assume_role_policy = data.aws_iam_policy_document.ecs_task_execution_role_policy
+    assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
 
 }
 
@@ -29,17 +29,42 @@ data "aws_iam_policy_document" "ecs_task_execution" {
         effect = "allow"
         actions = [
             "ecr:BatchGetImage",
-            "ecr:GetDownloadUrlForLayer"
+            "ecr:GetDownloadUrlForLayer",
+            "ecr:BatchCheckLayerAvailability"
         ]
-        resources = [aws_ecr_repositry.repo.arn]
+        resources = [var.ecr_repository_arn]
     }
+}
+
+resource "aws_iam_policy" "ecs_task_execution_policy" {
+    name = var.ecs_task_execution_policy_name
+    policy = data.aws_iam_policy_document.ecs_task_execution.json
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
     role = aws_iam_role.ecs_task_execution_role.name
-    policy_arn = aws_iam_role.ecs_task_execution_role.arn
+    policy_arn = aws_iam_policy.ecs_task_execution_policy.arn
 }
 
-data "aws_iam_policy_document" "assume_role" {
+resource "aws_iam_role" "ecs_task_role" {
+    name = var.ecs_task_role_name
+    assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
+}
 
+data "aws_iam_policy_document" "ecs_task" {
+    statement {
+        effect = "Allow"
+        actions = []
+        resources = ["*"]
+    }
+}
+
+resource "aws_iam_policy" "ecs_task_policy" {
+    name = var.ecs_task_policy_name
+    policy = data.aws_iam_policy_document.ecs_task.json
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task" {
+    role = aws_iam_role.ecs_task_role.name
+    policy_arn = aws_iam_policy.ecs_task_policy.arn
 }
